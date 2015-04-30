@@ -1,0 +1,28 @@
+<?php
+
+namespace Omnipay\AuthorizeNet\Message;
+
+use Omnipay\Common\Message\AbstractResponse;
+use Omnipay\Common\Message\RequestInterface;
+use Omnipay\Common\Exception\InvalidResponseException;
+
+/**
+ * Authorize.Net AIM Report Response
+ */
+class AIMReportResponse extends AbstractResponse
+{
+    public function __construct(RequestInterface $request, $data)
+    {
+        $this->request = $request;
+        $this->data = explode('|,|', substr($data, 1, -1));
+
+        if (count($this->data) < 10) {
+            throw new InvalidResponseException();
+        }
+    }
+
+    public function isSuccessful()
+    {
+        return '1' === $this->getCode();
+    }
+}

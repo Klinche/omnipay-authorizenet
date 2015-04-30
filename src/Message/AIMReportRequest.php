@@ -37,6 +37,13 @@ class AIMReportRequest extends AbstractRequest
         return $data;
     }
 
+    public function sendData($data)
+    {
+        $httpResponse = $this->httpClient->post($this->getEndpoint(), null, $data)->send();
+
+        return $this->response = new AIMReportResponse($this, $httpResponse->getBody());
+    }
+
 
     protected function getMerchantAuthentication()
     {
