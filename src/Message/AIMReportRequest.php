@@ -28,31 +28,38 @@ class AIMReportRequest extends AbstractRequest
         $this->reportAction = $reportAction;
     }
 
+    /**
+     * @return \DOMDocument
+     */
     public function getData()
     {
-        $data = array();
-        $data[$this->getReportAction()] = array();
-        $data[$this->getReportAction()] = $this->getMerchantAuthentication();
+        $xmlDoc = new \DOMDocument();
 
-        return $data;
+        $mainNode = $xmlDoc->createElement($this->getReportAction());
+        $mainNode->setAttribute('xmlns','AnetApi/xml/v1/schema/AnetApiSchema.xsd');
+        $root = $xmlDoc->appendChild($mainNode);
+        $mainNode->appendChild($this->getMerchantAuthenticationElement($xmlDoc));
+
+        return $xmlDoc;
     }
 
     public function sendData($data)
     {
-        $httpResponse = $this->httpClient->post($this->getEndpoint(), null, $data)->send();
-
+        $httpResponse = $this->httpClient->post($this->getEndpoint(), null, $data->saveXML())->send();
         return $this->response = new AIMReportResponse($this, $httpResponse->getBody());
     }
 
 
-    protected function getMerchantAuthentication()
+    /**
+     * Returns the merchant authentication element
+     * @return \DOMElement
+     */
+    protected function getMerchantAuthenticationElement(\DOMDocument $domDocument)
     {
-        $data = array();
-        $data['merchantAuthentication'] = array();
-        $data['merchantAuthentication']['name'] = $this->getApiLoginId();
-        $data['merchantAuthentication']['transactionKey'] = $this->getTransactionKey();
+        $merchantAuthentication = $domDocument->createElement('merchantAuthentication');
+        $merchantAuthentication->appendChild($domDocument->createElement('name', $this->getApiLoginId()));
+        $merchantAuthentication->appendChild($domDocument->createElement('transactionKey', $this->getTransactionKey()));
 
-        return $data;
-
+        return $merchantAuthentication;
     }
 }

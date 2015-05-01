@@ -14,11 +14,6 @@ class AIMReportResponse extends AbstractResponse
     public function __construct(RequestInterface $request, $data)
     {
         $this->request = $request;
-        $this->data = explode('|,|', substr($data, 1, -1));
-
-        if (count($this->data) < 10) {
-            throw new InvalidResponseException();
-        }
     }
 
     public function isSuccessful()
