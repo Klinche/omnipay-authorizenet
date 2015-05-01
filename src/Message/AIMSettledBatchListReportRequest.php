@@ -5,7 +5,7 @@ namespace Omnipay\AuthorizeNet\Message;
 /**
  * Authorize.Net AIM Report Request
  */
-class AIMSettledTransactionReportRequest extends AIMReportRequest
+class AIMSettledBatchListReportRequest extends AIMReportRequest
 {
     protected $liveEndpoint = 'https://api.authorize.net/xml/v1/request.api';
     protected $developerEndpoint = 'https://apitest.authorize.net/xml/v1/request.api';

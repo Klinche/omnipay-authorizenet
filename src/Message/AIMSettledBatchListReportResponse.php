@@ -9,7 +9,7 @@ use Omnipay\Common\Exception\InvalidResponseException;
 /**
  * Authorize.Net AIMSettledTransactionReportResponse
  */
-class AIMSettledTransactionReportResponse extends AIMReportResponse
+class AIMSettledBatchListReportResponse extends AIMReportResponse
 {
 
     protected $resultCode = null;
