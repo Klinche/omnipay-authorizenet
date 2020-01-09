@@ -6,7 +6,7 @@
  * Time: 1:33 PM
  */
 
-namespace Omnipay\AuthorizeNet;
+namespace Omnipay\AuthorizeNet\Model;
 
 use DateTime;
 use DateTimeZone;
@@ -20,8 +20,8 @@ use Omnipay\Common\Helper;
 class BankAccount
 {
 
-    const ACCOUNT_TYPE_CHECKING = "CHECKING";
     const ACCOUNT_TYPE_BUSINESS_CHECKING = "BUSINESSCHECKING";
+    const ACCOUNT_TYPE_CHECKING = "CHECKING";
     const ACCOUNT_TYPE_SAVINGS = "SAVINGS";
 
     /**
@@ -95,7 +95,7 @@ class BankAccount
      */
     public function validate()
     {
-        if (!in_array($this->getBankAccountType(), $this->getSupportedAccountType())) {
+        if (!in_array($this->getAccountType(), $this->getSupportedAccountType())) {
             throw new \InvalidArgumentException('The bank account type is not in the supported list.');
         }
     }
@@ -128,14 +128,14 @@ class BankAccount
         return $this->setParameter('routingNumber', preg_replace('/\D/', '', $value));
     }
 
-    public function getBankAccountType()
+    public function getAccountType()
     {
-        return $this->getParameter('bankAccountType');
+        return $this->getParameter('accountType');
     }
 
-    public function setBankAccountType($value)
+    public function setAccountType($value)
     {
-        return $this->setParameter('bankAccountType', $value);
+        return $this->setParameter('accountType', $value);
     }
 
     public function getBankName()
@@ -174,12 +174,12 @@ class BankAccount
         return $this;
     }
 
-    public function getName()
+    public function getNameOnAccount()
     {
         return $this->getBillingName();
     }
 
-    public function setName($value)
+    public function setNameOnAccount($value)
     {
         $this->setBillingName($value);
         $this->setShippingName($value);
