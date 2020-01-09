@@ -2,6 +2,7 @@
 
 namespace Omnipay\AuthorizeNet\Message;
 
+use Omnipay\AuthorizeNet\Model\BankAccount;
 use Omnipay\AuthorizeNet\Model\CardReference;
 use Omnipay\AuthorizeNet\Model\TransactionReference;
 use Omnipay\Common\CreditCard;
@@ -183,6 +184,26 @@ abstract class AIMAbstractRequest extends AbstractRequest
         }
 
         return $value;
+    }
+
+    /**
+     * @param string|BankAccount
+     */
+    public function setBankAccount($value)
+    {
+        if (!($value instanceof BankAccount)) {
+            $value = new BankAccount($value);
+        }
+
+        return $this->setParameter('bankAccount', $value);
+    }
+
+    /**
+     * @return BankAccount
+     */
+    public function getBankAccount()
+    {
+        return $this->getParameter('bankAccount');
     }
 
     public function getInvoiceNumber()
