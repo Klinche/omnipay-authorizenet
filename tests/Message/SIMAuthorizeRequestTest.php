@@ -14,6 +14,9 @@ class SIMAuthorizeRequestTest extends TestCase
                 'clientIp' => '10.0.0.1',
                 'amount' => '12.00',
                 'returnUrl' => 'https://www.example.com/return',
+                'liveEndpoint'      => 'https://secure.authorize.net/gateway/transact.dll',
+                'developerEndpoint' => 'https://test.authorize.net/gateway/transact.dll',
+                'invoiceNumber' => 'INVOICE_NUM',
             )
         );
     }
@@ -34,6 +37,7 @@ class SIMAuthorizeRequestTest extends TestCase
         $data = $this->request->getData();
 
         $this->assertSame('TRUE', $data['x_test_request']);
+        $this->assertSame('INVOICE_NUM', $data['x_invoice_num']);
     }
 
     public function testGetHash()
@@ -48,11 +52,28 @@ class SIMAuthorizeRequestTest extends TestCase
 
         $expected = hash_hmac('md5', 'user^a^b^c^', 'key');
 
-        $this->assertSame($expected, $this->request->getHash($data));
+        $this->assertSame($expected, $this->request->createHash($data));
     }
 
     public function testSend()
     {
+        $response = $this->request->send();
+
+        $this->assertFalse($response->isSuccessful());
+        $this->assertTrue($response->isRedirect());
+        $this->assertNotEmpty($response->getRedirectUrl());
+        $this->assertSame('POST', $response->getRedirectMethod());
+
+        $redirectData = $response->getRedirectData();
+        $this->assertSame('https://www.example.com/return', $redirectData['x_relay_url']);
+    }
+
+    // Issue #16 Support notifyUrl.
+    public function testSendNoifyUrl()
+    {
+        $this->request->setReturnUrl(null);
+        $this->request->setNotifyUrl('https://www.example.com/return');
+
         $response = $this->request->send();
 
         $this->assertFalse($response->isSuccessful());
