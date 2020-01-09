@@ -27,35 +27,11 @@ class AIMAuthorizeRequest extends AIMAbstractRequest
 
     protected $action = 'authOnlyTransaction';
 
-    const ECHECK = "ECHECK";
-    const CREDIT_CARD = "CC";
-
     public function getData()
     {
         $this->validate('amount');
 
         $data = $this->getBaseData();
-        $data['x_customer_ip'] = $this->getClientIp();
-        $data['x_cust_id'] = $this->getCustomerId();
-
-        if ($card = $this->getCard()) {
-            $card->validate();
-            $data['x_card_num'] = $this->getCard()->getNumber();
-            $data['x_exp_date'] = $this->getCard()->getExpiryDate('my');
-            $data['x_card_code'] = $this->getCard()->getCvv();
-            $data['x_method'] = self::CREDIT_CARD;
-        } elseif ($bankAccount = $this->getBankAccount()) {
-            $bankAccount->validate();
-            $data['x_bank_aba_code'] = $this->getBankAccount()->getRoutingNumber();
-            $data['x_bank_acct_num'] = $this->getBankAccount()->getAccountNumber();
-            $data['x_bank_acct_type'] = $this->getBankAccount()->getBankAccountType();
-            $data['x_bank_name'] = $this->getBankAccount()->getBankName();
-            $data['x_bank_acct_name'] = $this->getBankAccount()->getName();
-            $data['x_echeck_type'] = "WEB";
-            $data['x_recurring_billing'] = "FALSE";//NEED when we set echeck_type is WEB or TEL
-            $data['x_method'] = self::ECHECK;
-        }
-
         $data->transactionRequest->amount = $this->getAmount();
         $this->addPayment($data);
         $this->addSolutionId($data);
@@ -87,45 +63,80 @@ class AIMAuthorizeRequest extends AIMAbstractRequest
             return;
         }
 
-        // Try trackData first.
+        /** @var CreditCard $creditCard */
+        if ($creditCard = $this->getCard()) {
 
-        $creditCard = $this->getCard();
+            // Try trackData first.
+            if (($track1 = $creditCard->getTrack1())
+                && ($track2 = $creditCard->getTrack2())
+            ) {
+                $data
+                    ->transactionRequest
+                    ->payment
+                    ->trackData
+                    ->track1 = $track1;
 
-        if (($track1 = $creditCard->getTrack1())
-            && ($track2 = $creditCard->getTrack2())
-        ) {
-            $data
-                ->transactionRequest
-                ->payment
-                ->trackData
-                ->track1 = $track1;
+                $data
+                    ->transactionRequest
+                    ->payment
+                    ->trackData
+                    ->track2 = $track2;
+            } else {
+                // Validate the standard credit card number.
+                $this->validate('card');
 
-            $data
-                ->transactionRequest
-                ->payment
-                ->trackData
-                ->track2 = $track2;
-        } else {
-            // Validate the standard credit card number.
-            $this->validate('card');
+                $creditCard->validate();
+                $data
+                    ->transactionRequest
+                    ->payment
+                    ->creditCard
+                    ->cardNumber = $card->getNumber();
+                $data
+                    ->transactionRequest
+                    ->payment
+                    ->creditCard
+                    ->expirationDate = $card->getExpiryDate('my');
 
-            /** @var CreditCard $card */
-            $card = $this->getCard();
-            $card->validate();
-            $data
-                ->transactionRequest
-                ->payment
-                ->creditCard
-                ->cardNumber = $card->getNumber();
-            $data
-                ->transactionRequest
-                ->payment
-                ->creditCard
-                ->expirationDate = $card->getExpiryDate('my');
-
-            if (!empty($card->getCvv())) {
-                $data->transactionRequest->payment->creditCard->cardCode = $card->getCvv();
+                if (!empty($card->getCvv())) {
+                    $data->transactionRequest->payment->creditCard->cardCode = $card->getCvv();
+                }
             }
+        } else if ($bankAccount = $this->getBankAccount()) {
+            // Validate the standard bank account number
+            $this->validate('bankAccount');
+
+            $bankAccount->validate();
+
+            $data
+                ->transactionRequest
+                ->payment
+                ->bankAccount
+                ->accountType = $bankAccount->getAccountType();
+            $data
+                ->transactionRequest
+                ->payment
+                ->bankAccount
+                ->routingNumber = $bankAccount->getRoutingNumber();
+            $data
+                ->transactionRequest
+                ->payment
+                ->bankAccount
+                ->accountNumber = $bankAccount->getAccountNumber();
+            $data
+                ->transactionRequest
+                ->payment
+                ->bankAccount
+                ->nameOnAccount = $bankAccount->getName();
+            $data
+                ->transactionRequest
+                ->payment
+                ->bankAccount
+                ->bankName = $bankAccount->getBankName();
+            $data
+                ->transactionRequest
+                ->payment
+                ->bankAccount
+                ->echeckType = 'WEB';
         }
     }
 
