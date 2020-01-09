@@ -361,6 +361,28 @@ abstract class AIMAbstractRequest extends AbstractRequest
             $req->shipTo->state = $card->getShippingState();
             $req->shipTo->zip = $card->getShippingPostcode();
             $req->shipTo->country = $card->getShippingCountry();
+        } else if ($bank = $this->getBankAccount()) {
+            // A bank_account is present, so include billing and shipping details
+            $req->customer->email = $bank->getEmail();
+
+            $req->billTo->firstName = $bank->getBillingFirstName();
+            $req->billTo->lastName = $bank->getBillingLastName();
+            $req->billTo->company = $bank->getBillingCompany();
+            $req->billTo->address = trim($bank->getBillingAddress1() . " \n" . $bank->getBillingAddress2());
+            $req->billTo->city = $bank->getBillingCity();
+            $req->billTo->state = $bank->getBillingState();
+            $req->billTo->zip = $bank->getBillingPostcode();
+            $req->billTo->country = $bank->getBillingCountry();
+            $req->billTo->phoneNumber = $bank->getBillingPhone();
+
+            $req->shipTo->firstName = $bank->getShippingFirstName();
+            $req->shipTo->lastName = $bank->getShippingLastName();
+            $req->shipTo->company = $bank->getShippingCompany();
+            $req->shipTo->address = trim($bank->getShippingAddress1() . " \n" . $bank->getShippingAddress2());
+            $req->shipTo->city = $bank->getShippingCity();
+            $req->shipTo->state = $bank->getShippingState();
+            $req->shipTo->zip = $bank->getShippingPostcode();
+            $req->shipTo->country = $bank->getShippingCountry();
         }
 
         return $data;
