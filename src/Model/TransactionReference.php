@@ -38,7 +38,7 @@ class TransactionReference
                 $this->cardReference = new CardReference($data->cardReference);
             }
             if (isset($data->bankAccount)) {
-                $this->bankAccount = new BankAccount($data->bankAccount);
+                $this->bankAccount = $data->bankAccount;
             }
         }
     }
@@ -59,7 +59,7 @@ class TransactionReference
             $data['cardReference'] = (string)$this->cardReference;
         }
         if (isset($this->bankAccount)) {
-            $data['bankAccount'] = (string)$this->bankAccount;
+            $data['bankAccount'] = $this->bankAccount;
         }
         return json_encode($data);
     }
@@ -129,7 +129,7 @@ class TransactionReference
     }
 
     /**
-     * @return BankAccount
+     * @return object
      */
     public function getBankAccount()
     {
@@ -137,7 +137,7 @@ class TransactionReference
     }
 
     /**
-     * @param string|BankAccount $bankAccount
+     * @param array $bankAccount
      */
     public function setBankAccount($bankAccount)
     {

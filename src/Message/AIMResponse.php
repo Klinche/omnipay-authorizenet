@@ -179,7 +179,13 @@ class AIMResponse extends AbstractResponse
                 } elseif ($cardReference = $this->request->getCardReference()) {
                     $transactionRef->setCardReference(new CardReference($cardReference));
                 } elseif ($bankAccount = $this->request->getBankAccount()) {
-                    $transactionRef->setBankAccount(new BankAccount($bankAccount));
+                    $transactionRef->setBankAccount(array(
+                        'accountType' => $bankAccount->getAccountType(),
+                        'routingNumber' => $bankAccount->getRoutingNumber(),
+                        'accountNumber' => $bankAccount->getAccountNumber(),
+                        'nameOnAccount' => $bankAccount->getName(),
+                        'echeckType' => BankAccount::ECHECK_TYPE_WEB
+                    ));
                 }
             } catch (\Exception $e) {
             }

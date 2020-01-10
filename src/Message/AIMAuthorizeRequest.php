@@ -2,6 +2,7 @@
 
 namespace Omnipay\AuthorizeNet\Message;
 
+use Omnipay\AuthorizeNet\Model\BankAccount;
 use Omnipay\Common\CreditCard;
 use Omnipay\Common\Exception\InvalidRequestException;
 
@@ -130,7 +131,7 @@ class AIMAuthorizeRequest extends AIMAbstractRequest
                 ->transactionRequest
                 ->payment
                 ->bankAccount
-                ->nameOnAccount = $bankAccount->getNameOnAccount();
+                ->nameOnAccount = $bankAccount->getName();
             $data
                 ->transactionRequest
                 ->payment
@@ -140,7 +141,7 @@ class AIMAuthorizeRequest extends AIMAbstractRequest
                 ->transactionRequest
                 ->payment
                 ->bankAccount
-                ->echeckType = 'WEB';
+                ->echeckType = BankAccount::ECHECK_TYPE_WEB;
         }
     }
 
