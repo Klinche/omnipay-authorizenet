@@ -2,6 +2,7 @@
 
 namespace Omnipay\AuthorizeNet;
 
+use Omnipay\AuthorizeNet\Model\BankAccount;
 use Omnipay\Tests\GatewayTestCase;
 
 class AIMGatewayTest extends GatewayTestCase
@@ -9,6 +10,7 @@ class AIMGatewayTest extends GatewayTestCase
     /** @var AIMGateway */
     protected $gateway;
     protected $purchaseOptions;
+    protected $echeckOptions;
     protected $captureOptions;
     protected $voidOptions;
     protected $refundOptions;
@@ -29,6 +31,12 @@ class AIMGatewayTest extends GatewayTestCase
             'description' => 'purchase',
         );
 
+        $this->echeckOptions = array(
+            'amount' => '10.00',
+            'bankAccount' => $this->getValidBankAccount(),
+            'description' => 'purchase',
+        );
+
         $this->captureOptions = array(
             'amount' => '10.00',
             'transactionReference' => '12345',
@@ -45,6 +53,32 @@ class AIMGatewayTest extends GatewayTestCase
             'transactionReference' => '12345',
             'card' => $this->getValidCard(),
             'description' => 'refund',
+        );
+    }
+
+    public function getValidBankAccount()
+    {
+        return array(
+            'firstName' => 'Example',
+            'lastName' => 'User',
+            'accountType' => 'checking',
+            'routingNumber' => '122105155',
+            'accountNumber' => '123456789',
+            'bankName' => 'U.S. Bank',
+            'billingAddress1' => '123 Billing St',
+            'billingAddress2' => 'Billsville',
+            'billingCity' => 'Billstown',
+            'billingPostcode' => '12345',
+            'billingState' => 'CA',
+            'billingCountry' => 'US',
+            'billingPhone' => '(555) 123-4567',
+            'shippingAddress1' => '123 Shipping St',
+            'shippingAddress2' => 'Shipsville',
+            'shippingCity' => 'Shipstown',
+            'shippingPostcode' => '54321',
+            'shippingState' => 'NY',
+            'shippingCountry' => 'US',
+            'shippingPhone' => '(555) 987-6543',
         );
     }
 
@@ -76,6 +110,16 @@ class AIMGatewayTest extends GatewayTestCase
     private function getExpiry($card)
     {
         return str_pad($card['expiryMonth'] . $card['expiryYear'], 6, '0', STR_PAD_LEFT);
+    }
+
+    private function getBankAccountReference($bank) {
+        return json_encode(array(
+            'accountType' => $bank['accountType'],
+            'routingNumber' => $bank['routingNumber'],
+            'accountNumber' => $bank['accountNumber'],
+            'nameOnAccount' => $bank['firstName'] . ' ' . $bank['lastName'],
+            'echeckType' => BankAccount::ECHECK_TYPE_WEB
+        ));
     }
 
     public function testAuthorizeSuccess()
@@ -126,7 +170,7 @@ class AIMGatewayTest extends GatewayTestCase
         $this->assertSame('{"approvalCode":"","transId":"0"}', $response->getTransactionReference());
         $this->assertSame('The transaction cannot be found.', $response->getMessage());
     }
-    
+
     public function testCaptureOnlySuccess()
     {
         $this->setMockHttpResponse('AIMCaptureOnlySuccess.txt');
@@ -148,7 +192,8 @@ class AIMGatewayTest extends GatewayTestCase
         $this->assertSame('{"approvalCode":"ROHNFQ","transId":"0"}', $response->getTransactionReference());
         $this->assertSame('A valid amount is required.', $response->getMessage());
     }
-    public function testPurchaseSuccess()
+
+    public function testCardPurchaseSuccess()
     {
         $this->setMockHttpResponse('AIMPurchaseSuccess.txt');
 
@@ -160,7 +205,7 @@ class AIMGatewayTest extends GatewayTestCase
         $this->assertSame('This transaction has been approved.', $response->getMessage());
     }
 
-    public function testPurchaseFailure()
+    public function testCardPurchaseFailure()
     {
         $this->setMockHttpResponse('AIMPurchaseFailure.txt');
 
@@ -170,6 +215,30 @@ class AIMGatewayTest extends GatewayTestCase
         $expiry = $this->getExpiry($this->purchaseOptions['card']);
         $this->assertSame('{"approvalCode":"","transId":"0","card":{"number":"1111","expiry":"' . $expiry . '"}}', $response->getTransactionReference());
         $this->assertSame('A valid amount is required.', $response->getMessage());
+    }
+
+    public function testEcheckPurchaseSuccess()
+    {
+        $this->setMockHttpResponse('AIMEcheckPurchaseSuccess.txt');
+
+        $response = $this->gateway->purchase($this->echeckOptions)->send();
+
+        $this->assertTrue($response->isSuccessful());
+        $bankAccountReference = $this->getBankAccountReference($this->echeckOptions['bankAccount']);
+        $this->assertSame('{"approvalCode":"","transId":"2214627492","bankAccount":' . $bankAccountReference . '}', $response->getTransactionReference());
+        $this->assertSame('This transaction has been approved.', $response->getMessage());
+    }
+
+    public function testEcheckPurchaseFailure()
+    {
+        $this->setMockHttpResponse('AIMEcheckPurchaseFailure.txt');
+
+        $response = $this->gateway->purchase($this->echeckOptions)->send();
+
+        $this->assertFalse($response->isSuccessful());
+        $bankAccountReference = $this->getBankAccountReference($this->echeckOptions['bankAccount']);
+        $this->assertSame('{"approvalCode":"","transId":"0","bankAccount":' . $bankAccountReference . '}', $response->getTransactionReference());
+        $this->assertSame('The given name on the account and/or the account type does not match the actual account.', $response->getMessage());
     }
 
     public function testVoidSuccess()
