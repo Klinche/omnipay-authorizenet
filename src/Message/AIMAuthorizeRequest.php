@@ -65,7 +65,6 @@ class AIMAuthorizeRequest extends AIMAbstractRequest
 
         /** @var CreditCard $creditCard */
         if ($creditCard = $this->getCard()) {
-
             // Try trackData first.
             if (($track1 = $creditCard->getTrack1())
                 && ($track2 = $creditCard->getTrack2())
@@ -90,18 +89,23 @@ class AIMAuthorizeRequest extends AIMAbstractRequest
                     ->transactionRequest
                     ->payment
                     ->creditCard
-                    ->cardNumber = $card->getNumber();
+                    ->cardNumber = $creditCard->getNumber();
                 $data
                     ->transactionRequest
                     ->payment
                     ->creditCard
-                    ->expirationDate = $card->getExpiryDate('my');
+                    ->expirationDate = $creditCard->getExpiryDate('my');
 
-                if (!empty($card->getCvv())) {
-                    $data->transactionRequest->payment->creditCard->cardCode = $card->getCvv();
+                if (!empty($creditCard->getCvv())) {
+                    $data->transactionRequest->payment->creditCard->cardCode = $creditCard->getCvv();
                 }
             }
-        } else if ($bankAccount = $this->getBankAccount()) {
+
+            return;
+        }
+
+        /** @var BankAccount $bankAccount */
+        if ($bankAccount = $this->getBankAccount()) {
             // Validate the standard bank account number
             $this->validate('bankAccount');
 
@@ -126,7 +130,7 @@ class AIMAuthorizeRequest extends AIMAbstractRequest
                 ->transactionRequest
                 ->payment
                 ->bankAccount
-                ->nameOnAccount = $bankAccount->getName();
+                ->nameOnAccount = $bankAccount->getNameOnAccount();
             $data
                 ->transactionRequest
                 ->payment
