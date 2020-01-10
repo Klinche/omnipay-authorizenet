@@ -18,6 +18,8 @@ class TransactionReference
     private $card;
     /** @var CardReference */
     private $cardReference;
+    /** @var BankAccount */
+    private $bankAccount;
 
     public function __construct($data = null)
     {
@@ -34,6 +36,9 @@ class TransactionReference
             }
             if (isset($data->cardReference)) {
                 $this->cardReference = new CardReference($data->cardReference);
+            }
+            if (isset($data->bankAccount)) {
+                $this->bankAccount = new BankAccount($data->bankAccount);
             }
         }
     }
@@ -52,6 +57,9 @@ class TransactionReference
         }
         if (isset($this->cardReference)) {
             $data['cardReference'] = (string)$this->cardReference;
+        }
+        if (isset($this->bankAccount)) {
+            $data['bankAccount'] = (string)$this->bankAccount;
         }
         return json_encode($data);
     }
@@ -118,5 +126,21 @@ class TransactionReference
     public function setCardReference($cardReference)
     {
         $this->cardReference = $cardReference;
+    }
+
+    /**
+     * @return BankAccount
+     */
+    public function getBankAccount()
+    {
+        return $this->bankAccount;
+    }
+
+    /**
+     * @param string|BankAccount $bankAccount
+     */
+    public function setBankAccount($bankAccount)
+    {
+        $this->bankAccount = $bankAccount;
     }
 }

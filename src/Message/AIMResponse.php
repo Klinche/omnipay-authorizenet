@@ -2,6 +2,7 @@
 
 namespace Omnipay\AuthorizeNet\Message;
 
+use Omnipay\AuthorizeNet\Model\BankAccount;
 use Omnipay\AuthorizeNet\Model\CardReference;
 use Omnipay\AuthorizeNet\Model\TransactionReference;
 use Omnipay\Common\Exception\InvalidResponseException;
@@ -135,7 +136,7 @@ class AIMResponse extends AbstractResponse
             return '';
         }
     }
-    
+
     /**
      * Returns the Card Code Verfication return code.
      *
@@ -177,6 +178,8 @@ class AIMResponse extends AbstractResponse
                     ));
                 } elseif ($cardReference = $this->request->getCardReference()) {
                     $transactionRef->setCardReference(new CardReference($cardReference));
+                } elseif ($bankAccount = $this->request->getBankAccount()) {
+                    $transactionRef->setBankAccount(new BankAccount($bankAccount));
                 }
             } catch (\Exception $e) {
             }

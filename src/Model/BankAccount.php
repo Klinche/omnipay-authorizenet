@@ -39,6 +39,19 @@ class BankAccount
         $this->initialize($parameters);
     }
 
+    public function __toString()
+    {
+        $data = array(
+            'accountType' => $this->getAccountType(),
+            'routingNumber' => $this->getRoutingNumber(),
+            'accountNumber' => $this->getAccountNumber(),
+            'nameOnAccount' => $this->getNameOnAccount(),
+            'echeckType' => 'WEB'
+        );
+
+        return json_encode($data);
+    }
+
     /**
      * Initialize the object with parameters.
      *
