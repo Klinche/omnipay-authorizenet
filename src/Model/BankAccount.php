@@ -20,9 +20,9 @@ use Omnipay\Common\Helper;
 class BankAccount
 {
 
-    const ACCOUNT_TYPE_BUSINESS_CHECKING = "BUSINESSCHECKING";
-    const ACCOUNT_TYPE_CHECKING = "CHECKING";
-    const ACCOUNT_TYPE_SAVINGS = "SAVINGS";
+    const ACCOUNT_TYPE_CHECKING = "checking";
+    const ACCOUNT_TYPE_SAVINGS = "savings";
+    const ACCOUNT_TYPE_BUSINESS_CHECKING = "businessChecking";
 
     /**
      * @var \Symfony\Component\HttpFoundation\ParameterBag
