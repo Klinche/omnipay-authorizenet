@@ -7,8 +7,9 @@ namespace Omnipay\AuthorizeNet\Model;
 
 use DateTime;
 use DateTimeZone;
-use Symfony\Component\HttpFoundation\ParameterBag;
+use Omnipay\AuthorizeNet\Exception\InvalidBankAccountException;
 use Omnipay\Common\Helper;
+use Symfony\Component\HttpFoundation\ParameterBag;
 
 /**
  * Bank Account class
@@ -185,10 +186,10 @@ class BankAccount
     }
 
     /**
-     * Validate this bank account. If the bank account is invalid, InvalidArgumentException is thrown.
+     * Validate this bank account. If the bank account is invalid, InvalidBankAccountException is thrown.
      *
      * @return void
-     * @throws InvalidArgumentException
+     * @throws InvalidBankAccountException
      */
     public function validate()
     {
@@ -200,12 +201,12 @@ class BankAccount
 
         foreach ($requiredParameters as $key => $val) {
             if (!$this->getParameter($key)) {
-                throw new \InvalidArgumentException("The $val is required");
+                throw new InvalidBankAccountException("The $val is required");
             }
         }
 
         if (!in_array($this->getAccountType(), $this->getSupportedAccountTypes())) {
-            throw new \InvalidArgumentException('The bank account type is not in the supported list');
+            throw new InvalidBankAccountException('The bank account type is not in the supported list');
         }
     }
 

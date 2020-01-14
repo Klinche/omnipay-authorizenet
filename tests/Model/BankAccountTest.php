@@ -58,7 +58,7 @@ class BankAccountTest extends TestCase
     }
 
     /**
-     * @expectedException \InvalidArgumentException
+     * @expectedException \Omnipay\AuthorizeNet\Exception\InvalidBankAccountException
      * @expectedExceptionMessage The bank account type is required
      */
     public function testValidateAccountTypeRequired()
@@ -68,7 +68,7 @@ class BankAccountTest extends TestCase
     }
 
     /**
-     * @expectedException \InvalidArgumentException
+     * @expectedException \Omnipay\AuthorizeNet\Exception\InvalidBankAccountException
      * @expectedExceptionMessage The bank routing number is required
      */
     public function testValidateRoutingNumberRequired()
@@ -78,7 +78,7 @@ class BankAccountTest extends TestCase
     }
 
     /**
-     * @expectedException \InvalidArgumentException
+     * @expectedException \Omnipay\AuthorizeNet\Exception\InvalidBankAccountException
      * @expectedExceptionMessage The bank account number is required
      */
     public function testValidateAccountNumberRequired()
@@ -88,7 +88,7 @@ class BankAccountTest extends TestCase
     }
 
     /**
-     * @expectedException \InvalidArgumentException
+     * @expectedException \Omnipay\AuthorizeNet\Exception\InvalidBankAccountException
      * @expectedExceptionMessage The bank account type is not in the supported list
      */
     public function testValidateAccountType()
