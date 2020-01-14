@@ -96,6 +96,13 @@ class BankAccount
     const ECHECK_TYPE_WEB = 'WEB';
 
     /**
+     * The regular expression for validating routing numbers
+     *
+     * @link http://www.routingnumber.com
+     */
+    const ROUTING_NUMBER_REGEX = '/^(0\d|1[0-2]|2[1-9]|3[0-2]|6[1-9]|7[0-2]|80)\d{7}$/';
+
+    /**
      * All known/supported account types
      *
      * Note: The BusinessChecking account type is not included because the eCheck type used does not all it
