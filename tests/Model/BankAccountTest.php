@@ -97,6 +97,26 @@ class BankAccountTest extends TestCase
         $this->bank->validate();
     }
 
+    /**
+     * @expectedException \Omnipay\AuthorizeNet\Exception\InvalidBankAccountException
+     * @expectedExceptionMessage The bank routing number should have 9 digits
+     */
+    public function testValidateRoutingNumberLength()
+    {
+        $this->bank->setRoutingNumber(12345678);
+        $this->bank->validate();
+    }
+
+    /**
+     * @expectedException \Omnipay\AuthorizeNet\Exception\InvalidBankAccountException
+     * @expectedExceptionMessage The bank routing number is invalid
+     */
+    public function testValidateRoutingNumber()
+    {
+        $this->bank->setRoutingNumber(123456789);
+        $this->bank->validate();
+    }
+
     public function testGetSupportedAccountTypes()
     {
         $accountTypes = $this->bank->getSupportedAccountTypes();
