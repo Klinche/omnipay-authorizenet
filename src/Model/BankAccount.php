@@ -208,6 +208,37 @@ class BankAccount
         if (!in_array($this->getAccountType(), $this->getSupportedAccountTypes())) {
             throw new InvalidBankAccountException('The bank account type is not in the supported list');
         }
+
+        if (!is_null($this->getRoutingNumber())
+            && !preg_match('/^\d{9}$/i', $this->getRoutingNumber())
+        ) {
+            throw new InvalidBankAccountException('The bank routing number should have 9 digits');
+        }
+
+        if (!preg_match(self::ROUTING_NUMBER_REGEX, $this->getRoutingNumber())
+            || !$this->validateChecksum($this->getRoutingNumber())
+        ) {
+            throw new InvalidBankAccountException('The bank routing number is invalid');
+        }
+    }
+
+    /**
+     * Validate a bank routing number according to the checksum algorithm.
+     *
+     * @link https://github.com/activemerchant/active_merchant/blob/master/lib/active_merchant/billing/check.rb
+     * @param string $number The bank routing number to validate
+     * @return bool True if the supplied bank routing number is valid
+     */
+    private function validateChecksum($number)
+    {
+        $split = array_chunk(str_split($number), 3);
+        $function = function ($chars) {
+            return ($chars[0] * 3)
+                + ($chars[1] * 7)
+                + ($chars[2]);
+        };
+
+        return array_sum(array_map($function, $split)) % 10 === 0;
     }
 
     /**
