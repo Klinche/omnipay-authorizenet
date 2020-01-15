@@ -136,12 +136,12 @@ class AIMAuthorizeRequest extends AIMAbstractRequest
                 ->transactionRequest
                 ->payment
                 ->bankAccount
-                ->bankName = $bankAccount->getBankName();
+                ->echeckType = BankAccount::ECHECK_TYPE_WEB;
             $data
                 ->transactionRequest
                 ->payment
                 ->bankAccount
-                ->echeckType = BankAccount::ECHECK_TYPE_WEB;
+                ->bankName = $bankAccount->getBankName();
         }
     }
 
