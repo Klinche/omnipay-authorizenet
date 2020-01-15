@@ -2,15 +2,18 @@
 
 namespace Omnipay\AuthorizeNet\Message;
 
-use Omnipay\AuthorizeNet\BankAccount;
-
 /**
- * Authorize.Net Abstract Request
+ * Authorize.Net SIM Abstract Request
  */
-abstract class AbstractRequest extends \Omnipay\Common\Message\AbstractRequest
+
+use Omnipay\Common\Message\AbstractRequest;
+
+abstract class SIMAbstractRequest extends AbstractRequest
 {
-    protected $liveEndpoint = 'https://secure.authorize.net/gateway/transact.dll';
-    protected $developerEndpoint = 'https://test.authorize.net/gateway/transact.dll';
+    /**
+     * Custom field name to send the transaction ID to the notify handler.
+     */
+    const TRANSACTION_ID_PARAM = 'omnipay_transaction_id';
 
     public function getApiLoginId()
     {
@@ -30,6 +33,16 @@ abstract class AbstractRequest extends \Omnipay\Common\Message\AbstractRequest
     public function setTransactionKey($value)
     {
         return $this->setParameter('transactionKey', $value);
+    }
+
+    public function getSignatureKey()
+    {
+        return $this->getParameter('signatureKey');
+    }
+
+    public function setSignatureKey($value)
+    {
+        return $this->setParameter('signatureKey', $value);
     }
 
     public function getDeveloperMode()
@@ -62,20 +75,39 @@ abstract class AbstractRequest extends \Omnipay\Common\Message\AbstractRequest
         return $this->setParameter('hashSecret', $value);
     }
 
-    public function getBankAccount()
+    public function getLiveEndpoint()
     {
-        return $this->getParameter('bankAccount');
+        return $this->getParameter('liveEndpoint');
     }
 
-    public function setBankAccount($value)
+    public function setLiveEndpoint($value)
     {
-        if ($value && !$value instanceof BankAccount) {
-            $value = new BankAccount($value);
-        }
-
-        return $this->setParameter('bankAccount', $value);
+        return $this->setParameter('liveEndpoint', $value);
     }
 
+    public function setDeveloperEndpoint($value)
+    {
+        return $this->setParameter('developerEndpoint', $value);
+    }
+
+    public function getDeveloperEndpoint()
+    {
+        return $this->getParameter('developerEndpoint');
+    }
+
+    public function setInvoiceNumber($value)
+    {
+        return $this->setParameter('invoiceNumber', $value);
+    }
+
+    public function getInvoiceNumber()
+    {
+        return $this->getParameter('invoiceNumber');
+    }
+
+    /**
+     * Base data used only for the AIM API.
+     */
     protected function getBaseData()
     {
         $data = array();
@@ -95,7 +127,13 @@ abstract class AbstractRequest extends \Omnipay\Common\Message\AbstractRequest
     {
         $data = array();
         $data['x_amount'] = $this->getAmount();
-        $data['x_invoice_num'] = $this->getTransactionId();
+
+        // The invoice number field is properly supported.
+        $data['x_invoice_num'] = $this->getInvoiceNumber();
+
+        // A custom field can be used to pass over the merchant site transaction ID.
+        $data[static::TRANSACTION_ID_PARAM] = $this->getTransactionId();
+
         $data['x_description'] = $this->getDescription();
 
         if ($card = $this->getCard()) {
@@ -104,7 +142,7 @@ abstract class AbstractRequest extends \Omnipay\Common\Message\AbstractRequest
             $data['x_last_name'] = $card->getBillingLastName();
             $data['x_company'] = $card->getBillingCompany();
             $data['x_address'] = trim(
-                $card->getBillingAddress1()." \n".
+                $card->getBillingAddress1() . " \n" .
                 $card->getBillingAddress2()
             );
             $data['x_city'] = $card->getBillingCity();
@@ -119,41 +157,13 @@ abstract class AbstractRequest extends \Omnipay\Common\Message\AbstractRequest
             $data['x_ship_to_last_name'] = $card->getShippingLastName();
             $data['x_ship_to_company'] = $card->getShippingCompany();
             $data['x_ship_to_address'] = trim(
-                $card->getShippingAddress1()." \n".
+                $card->getShippingAddress1() . " \n" .
                 $card->getShippingAddress2()
             );
             $data['x_ship_to_city'] = $card->getShippingCity();
             $data['x_ship_to_state'] = $card->getShippingState();
             $data['x_ship_to_zip'] = $card->getShippingPostcode();
             $data['x_ship_to_country'] = $card->getShippingCountry();
-        } elseif ($bankAccount = $this->getBankAccount()) {
-            // customer billing details
-            $data['x_first_name'] = $bankAccount->getBillingFirstName();
-            $data['x_last_name'] = $bankAccount->getBillingLastName();
-            $data['x_company'] = $bankAccount->getBillingCompany();
-            $data['x_address'] = trim(
-                $bankAccount->getBillingAddress1()." \n".
-                $bankAccount->getBillingAddress2()
-            );
-            $data['x_city'] = $bankAccount->getBillingCity();
-            $data['x_state'] = $bankAccount->getBillingState();
-            $data['x_zip'] = $bankAccount->getBillingPostcode();
-            $data['x_country'] = $bankAccount->getBillingCountry();
-            $data['x_phone'] = $bankAccount->getBillingPhone();
-            $data['x_email'] = $bankAccount->getEmail();
-
-            // customer shipping details
-            $data['x_ship_to_first_name'] = $bankAccount->getShippingFirstName();
-            $data['x_ship_to_last_name'] = $bankAccount->getShippingLastName();
-            $data['x_ship_to_company'] = $bankAccount->getShippingCompany();
-            $data['x_ship_to_address'] = trim(
-                $bankAccount->getShippingAddress1()." \n".
-                $bankAccount->getShippingAddress2()
-            );
-            $data['x_ship_to_city'] = $bankAccount->getShippingCity();
-            $data['x_ship_to_state'] = $bankAccount->getShippingState();
-            $data['x_ship_to_zip'] = $bankAccount->getShippingPostcode();
-            $data['x_ship_to_country'] = $bankAccount->getShippingCountry();
         }
 
         return $data;
@@ -161,13 +171,17 @@ abstract class AbstractRequest extends \Omnipay\Common\Message\AbstractRequest
 
     public function sendData($data)
     {
-        $httpResponse = $this->httpClient->post($this->getEndpoint(), null, $data)->send();
+        $httpResponse = $this->httpClient->request('POST', $this->getEndpoint(), [], http_build_query($data));
 
-        return $this->response = new AIMResponse($this, $httpResponse->getBody());
+        return $this->response = new AIMResponse($this, $httpResponse->getBody()->getContents());
     }
 
     public function getEndpoint()
     {
-        return $this->getDeveloperMode() ? $this->developerEndpoint : $this->liveEndpoint;
+        if ($this->getDeveloperMode()) {
+            return $this->getParameter('developerEndpoint');
+        } else {
+            return $this->getParameter('liveEndpoint');
+        }
     }
 }
